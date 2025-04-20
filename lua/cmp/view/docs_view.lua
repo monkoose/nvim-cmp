@@ -3,6 +3,7 @@ local config = require('cmp.config')
 
 ---@class cmp.DocsView
 ---@field public window cmp.Window
+---@field entry cmp.Entry
 local docs_view = {}
 
 ---Create new floating window module
@@ -43,40 +44,52 @@ docs_view.open = function(self, e, view)
     max_width = math.min(documentation.max_width, max_width)
   end
 
+  local documents
+  local bufnr
+  local opts = { max_width = max_width - border_info.horiz }
+  local lang_for_ft = vim.treesitter.language.get_lang(e.context.filetype) or ''
+  local has_ts_parser = vim.treesitter.language.add(lang_for_ft)
   -- Update buffer content if needed.
   if not self.entry or e.id ~= self.entry.id then
-    local documents = e:get_documentation()
+    documents = e:get_documentation()
     if #documents == 0 then
       return self:close()
     end
 
     self.entry = e
-    vim.api.nvim_buf_call(self.window:get_buffer(), function()
+    bufnr = self.window:get_buffer()
+    vim.api.nvim_buf_call(bufnr, function()
       vim.cmd([[syntax clear]])
-      vim.api.nvim_buf_set_lines(self.window:get_buffer(), 0, -1, false, {})
+      vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, {})
     end)
-    local opts = {
-      max_width = max_width - border_info.horiz,
-    }
-    if documentation.max_height > 0 then
-      opts.max_height = documentation.max_height
+    if not has_ts_parser then
+      if documentation.max_height > 0 then
+        opts.max_height = documentation.max_height
+      end
+      vim.lsp.util.stylize_markdown(bufnr, documents, opts)
     end
-    vim.lsp.util.stylize_markdown(self.window:get_buffer(), documents, opts)
   end
 
   -- Set buffer as not modified, so it can be removed without errors
-  vim.api.nvim_buf_set_option(self.window:get_buffer(), 'modified', false)
+  vim.api.nvim_set_option_value('modified', false, { buf = bufnr })
 
   -- Calculate window size.
-  local opts = {
-    max_width = max_width - border_info.horiz,
-  }
   if documentation.max_height > 0 then
     opts.max_height = documentation.max_height - border_info.vert
   end
-  local width, height = vim.lsp.util._make_floating_popup_size(vim.api.nvim_buf_get_lines(self.window:get_buffer(), 0, -1, false), opts)
+
+  local width, height = vim.lsp.util._make_floating_popup_size(documents, opts)
   if width <= 0 or height <= 0 then
     return self:close()
+  end
+
+  if has_ts_parser then
+    local contents = vim.lsp.util._normalize_markdown(documents, { width = width })
+    if not bufnr then
+      bufnr = self.window:get_buffer()
+    end
+    vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, contents)
+    vim.treesitter.start(bufnr, 'markdown')
   end
 
   -- Calculate window position.
@@ -118,6 +131,14 @@ docs_view.open = function(self, e, view)
   if left then
     style.col = style.col - self.window:info().scrollbar_offset
     self.window:open(style)
+  end
+
+  -- Adjust height after treesitter (which can conceal lines) or stylize_markdown
+  if self.window.win then
+    local conceal_height = vim.api.nvim_win_text_height(self.window.win, {}).all
+    if conceal_height < vim.api.nvim_win_get_height(self.window.win) then
+      vim.api.nvim_win_set_height(self.window.win, conceal_height)
+    end
   end
 end
 

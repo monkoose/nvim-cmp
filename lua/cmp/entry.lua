@@ -518,16 +518,25 @@ entry.get_documentation = function(self)
     if dot_index ~= nil then
       ft = string.sub(ft, 0, dot_index - 1)
     end
-    table.insert(documents, {
-      kind = types.lsp.MarkupKind.Markdown,
-      value = ('```%s\n%s\n```'):format(ft, str.trim(item.detail)),
-    })
+    if ft == 'd' then
+      local s = string.gsub(item.detail, '\n', ';\n')
+      table.insert(documents, {
+        kind = types.lsp.MarkupKind.Markdown,
+        value = ('```%s\n%s;\n```'):format(ft, str.trim(s)),
+      })
+    else
+      table.insert(documents, {
+        kind = types.lsp.MarkupKind.Markdown,
+        value = ('```%s\n%s\n```'):format(ft, str.trim(item.detail)),
+      })
+    end
   end
 
   local documentation = item.documentation
   if type(documentation) == 'string' and documentation ~= '' then
     local value = str.trim(documentation)
     if value ~= '' then
+      table.insert(documents, '---')
       table.insert(documents, {
         kind = types.lsp.MarkupKind.PlainText,
         value = value,
@@ -536,6 +545,7 @@ entry.get_documentation = function(self)
   elseif type(documentation) == 'table' and not misc.empty(documentation.value) then
     local value = str.trim(documentation.value)
     if value ~= '' then
+      table.insert(documents, '---')
       table.insert(documents, {
         kind = documentation.kind,
         value = value,

@@ -8,10 +8,10 @@ local config = require('cmp.config')
 ---@field public relative string
 ---@field public row integer
 ---@field public col integer
----@field public width integer|float
----@field public height integer|float
----@field public border string|string[]|nil
----@field public zindex integer|nil
+---@field public width number
+---@field public height number
+---@field public border? string|string[]
+---@field public zindex? integer
 
 ---@class cmp.Window
 ---@field public name string
