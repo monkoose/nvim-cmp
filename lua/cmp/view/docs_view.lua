@@ -133,8 +133,14 @@ docs_view.open = function(self, e, view)
     self.window:open(style)
   end
 
-  -- Adjust height after treesitter (which can conceal lines) or stylize_markdown
   if self.window.win then
+    -- Highlight separators
+    vim.api.nvim_win_call(self.window.win, function()
+      vim.fn.clearmatches(self.window.win)
+      vim.fn.matchadd('CmpDocSeparator', '^────*')
+    end)
+
+    -- Adjust height after treesitter (which can conceal lines) or stylize_markdown
     local conceal_height = vim.api.nvim_win_text_height(self.window.win, {}).all
     if conceal_height < vim.api.nvim_win_get_height(self.window.win) then
       vim.api.nvim_win_set_height(self.window.win, conceal_height)
