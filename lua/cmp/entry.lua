@@ -343,7 +343,7 @@ entry._get_vim_item = function(self, suggest_offset)
 
   -- fix dlang labels
   local insertText = completion_item.insertText
-  if insertText then
+  if insertText and self.context.filetype == 'd' then
     local st, en = string.find(abbr, insertText)
     if st == 1 then
       local m = str.trim(string.sub(abbr, en + 1))
