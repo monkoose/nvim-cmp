@@ -127,24 +127,24 @@ docs_view.open = function(self, e, view)
   }
   self.window:open(style)
 
+  -- Highlight separators
+  local matches = vim.fn.getmatches(self.window.win)
+  if not (#matches > 0 and vim.tbl_filter(function(v)
+    return v.group == 'CmpDocSeparator'
+  end, matches)) then
+    vim.fn.matchadd('CmpDocSeparator', '^────*', 10, -1, { window = self.window.win })
+  end
+
+  -- Adjust height after treesitter (which can conceal lines) or stylize_markdown
+  local conceal_height = vim.api.nvim_win_text_height(self.window.win, {}).all
+  if conceal_height < vim.api.nvim_win_get_height(self.window.win) then
+    vim.api.nvim_win_set_height(self.window.win, conceal_height)
+  end
+
   -- Correct left-col for scrollbar existence.
   if left then
     style.col = style.col - self.window:info().scrollbar_offset
     self.window:open(style)
-  end
-
-  if self.window.win then
-    -- Highlight separators
-    vim.api.nvim_win_call(self.window.win, function()
-      vim.fn.clearmatches(self.window.win)
-      vim.fn.matchadd('CmpDocSeparator', '^────*')
-    end)
-
-    -- Adjust height after treesitter (which can conceal lines) or stylize_markdown
-    local conceal_height = vim.api.nvim_win_text_height(self.window.win, {}).all
-    if conceal_height < vim.api.nvim_win_get_height(self.window.win) then
-      vim.api.nvim_win_set_height(self.window.win, conceal_height)
-    end
   end
 end
 
