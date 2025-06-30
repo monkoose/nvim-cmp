@@ -137,7 +137,7 @@ custom_entries_view.open = function(self, offset, entries)
 
   self.offset = offset
   self.entries = {}
-  self.column_width = { abbr = 10, kind = 0, menu = 0 }
+  self.column_width = { abbr = 0, kind = 0, menu = 0 }
 
   local entries_buf = self.entries_win:get_buffer()
   local fields = config.get().formatting.fields

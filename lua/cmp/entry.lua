@@ -285,12 +285,8 @@ entry._get_view = function(self, item, entries_buf)
     view.kind.hl_group = item.kind_hl_group or ('CmpItemKind' .. (types.lsp.CompletionItemKind[self:get_kind()] or ''))
     view.menu = {}
     view.menu.text = item.menu or ''
-    view.menu.width = vim.fn.strdisplaywidth(view.menu.text)
-    if view.menu.width > 30 then
-      view.menu.text = '...'
-      view.menu.width = 3
-    end
     view.menu.bytes = #view.menu.text
+    view.menu.width = vim.fn.strdisplaywidth(view.menu.text)
     view.menu.hl_group = item.menu_hl_group or 'CmpItemMenu'
     view.dup = item.dup
   end)
@@ -338,20 +334,6 @@ entry._get_vim_item = function(self, suggest_offset)
     end
     if completion_item.labelDetails.description then
       menu = menu .. completion_item.labelDetails.description
-    end
-  end
-
-  -- fix dlang labels
-  local insertText = completion_item.insertText
-  if insertText and self.context.filetype == 'd' then
-    local st, en = string.find(abbr, insertText)
-    if st == 1 then
-      local m = str.trim(string.sub(abbr, en + 1))
-      if #m > 0 then
-        menu = m
-        abbr = insertText
-        self.filter_text = abbr
-      end
     end
   end
 
