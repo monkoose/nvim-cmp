@@ -20,9 +20,6 @@ config.buffers = {}
 ---@type table<string, cmp.ConfigSchema>
 config.filetypes = {}
 
----@type table<string, cmp.ConfigSchema>
-config.cmdline = {}
-
 ---@type cmp.ConfigSchema
 config.onetime = {}
 
@@ -54,17 +51,6 @@ config.set_filetype = function(c, filetypes)
   end
 end
 
----Set configuration for cmdline
----@param c cmp.ConfigSchema
----@param cmdtypes string|string[]
-config.set_cmdline = function(c, cmdtypes)
-  for _, cmdtype in ipairs(type(cmdtypes) == 'table' and cmdtypes or { cmdtypes }) do
-    local revision = (config.cmdline[cmdtype] or {}).revision or 1
-    config.cmdline[cmdtype] = c or {}
-    config.cmdline[cmdtype].revision = revision + 1
-  end
-end
-
 ---Set configuration as oneshot completion.
 ---@param c cmp.ConfigSchema
 config.set_onetime = function(c)
@@ -88,21 +74,6 @@ config.get = function()
     }, function()
       local c = {}
       c = misc.merge(c, config.normalize(onetime_config))
-      c = misc.merge(c, config.normalize(global_config))
-      return c
-    end)
-  elseif api.is_cmdline_mode() then
-    local cmdtype = vim.fn.getcmdtype()
-    local cmdline_config = config.cmdline[cmdtype] or { revision = 1, sources = {} }
-    return config.cache:ensure({
-      'get',
-      'cmdline',
-      global_config.revision or 0,
-      cmdtype,
-      cmdline_config.revision or 0,
-    }, function()
-      local c = {}
-      c = misc.merge(c, config.normalize(cmdline_config))
       c = misc.merge(c, config.normalize(global_config))
       return c
     end)

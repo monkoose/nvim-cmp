@@ -306,12 +306,6 @@ custom_entries_view.draw = function(self)
     vim.api.nvim_buf_set_lines(entries_buf, topline, botline, false, texts)
   end
   vim.api.nvim_buf_set_option(entries_buf, 'modified', false)
-
-  if api.is_cmdline_mode() then
-    vim.api.nvim_win_call(self.entries_win.win, function()
-      misc.redraw()
-    end)
-  end
 end
 
 custom_entries_view.visible = function(self)
@@ -461,43 +455,28 @@ custom_entries_view._insert = setmetatable({
 }, {
   __call = function(this, self, word)
     word = word or ''
-    if api.is_cmdline_mode() then
-      local cursor = api.get_cursor()
-      -- setcmdline() added in v0.8.0
-      if vim.fn.has('nvim-0.8') == 1 then
-        local current_line = api.get_current_line()
-        local before_line = current_line:sub(1, self.offset - 1)
-        local after_line = current_line:sub(cursor[2] + 1)
-        local pos = #before_line + #word + 1
-        vim.fn.setcmdline(before_line .. word .. after_line, pos)
-        vim.api.nvim_feedkeys(keymap.t('<Cmd>redraw<CR>'), 'ni', false)
-      else
-        vim.api.nvim_feedkeys(keymap.backspace(string.sub(api.get_current_line(), self.offset, cursor[2])) .. word, 'int', true)
-      end
-    else
-      if this.pending then
-        return
-      end
-      this.pending = true
-
-      local release = require('cmp').suspend()
-      feedkeys.call('', '', function()
-        local cursor = api.get_cursor()
-        local keys = {}
-        table.insert(keys, keymap.indentkeys())
-        table.insert(keys, keymap.backspace(string.sub(api.get_current_line(), self.offset, cursor[2])))
-        table.insert(keys, word)
-        table.insert(keys, keymap.indentkeys(vim.bo.indentkeys))
-        feedkeys.call(
-          table.concat(keys, ''),
-          'int',
-          vim.schedule_wrap(function()
-            this.pending = false
-            release()
-          end)
-        )
-      end)
+    if this.pending then
+      return
     end
+    this.pending = true
+
+    local release = require('cmp').suspend()
+    feedkeys.call('', '', function()
+      local cursor = api.get_cursor()
+      local keys = {}
+      table.insert(keys, keymap.indentkeys())
+      table.insert(keys, keymap.backspace(string.sub(api.get_current_line(), self.offset, cursor[2])))
+      table.insert(keys, word)
+      table.insert(keys, keymap.indentkeys(vim.bo.indentkeys))
+      feedkeys.call(
+        table.concat(keys, ''),
+        'int',
+        vim.schedule_wrap(function()
+          this.pending = false
+          release()
+        end)
+      )
+    end)
   end,
 })
 

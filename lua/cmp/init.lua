@@ -345,9 +345,6 @@ cmp.setup = setmetatable({
   buffer = function(c)
     config.set_buffer(c, vim.api.nvim_get_current_buf())
   end,
-  cmdline = function(type, c)
-    config.set_cmdline(c, type)
-  end,
 }, {
   __call = function(self, c)
     self.global(c)
@@ -363,17 +360,14 @@ local on_insert_enter = function()
     cmp.core:on_change('InsertEnter')
   end
 end
-autocmd.subscribe({ 'CmdlineEnter' }, async.debounce_next_tick(on_insert_enter))
 autocmd.subscribe({ 'InsertEnter' }, async.debounce_next_tick_by_keymap(on_insert_enter))
 
--- async.throttle is needed for performance. The mapping `:<C-u>...<CR>` will fire `CmdlineChanged` for each character.
 local on_text_changed = function()
   if config.enabled() then
     cmp.core:on_change('TextChanged')
   end
 end
 autocmd.subscribe({ 'TextChangedI', 'TextChangedP' }, on_text_changed)
-autocmd.subscribe('CmdlineChanged', async.debounce_next_tick(on_text_changed))
 
 autocmd.subscribe('CursorMovedI', function()
   if config.enabled() then
@@ -385,7 +379,7 @@ autocmd.subscribe('CursorMovedI', function()
 end)
 
 -- If make this asynchronous, the completion menu will not close when the command output is displayed.
-autocmd.subscribe({ 'InsertLeave', 'CmdlineLeave', 'CmdwinEnter' }, function()
+autocmd.subscribe({ 'InsertLeave', 'CmdwinEnter' }, function()
   cmp.core:reset()
   cmp.core.view:close()
 end)

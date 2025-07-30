@@ -43,7 +43,6 @@ Usage                                                                *cmp-usage*
 A recommended configuration can be found below.
   NOTE:
     1. You must provide a `snippet.expand` function.
-    2. `cmp.setup.cmdline` won't work if you use the `native` completion menu.
     3. You can disable the `default` options by specifying `cmp.config.disable` value.
 >vim
   call plug#begin(s:plug_dir)
@@ -51,7 +50,6 @@ A recommended configuration can be found below.
   Plug 'hrsh7th/cmp-nvim-lsp'
   Plug 'hrsh7th/cmp-buffer'
   Plug 'hrsh7th/cmp-path'
-  Plug 'hrsh7th/cmp-cmdline'
   Plug 'hrsh7th/nvim-cmp'
 
   " For vsnip users.
@@ -119,25 +117,6 @@ A recommended configuration can be found below.
       })
     })
 
-    -- `/` cmdline setup.
-    cmp.setup.cmdline('/', {
-      mapping = cmp.mapping.preset.cmdline(),
-      sources = {
-        { name = 'buffer' }
-      }
-    })
-
-    -- `:` cmdline setup.
-    cmp.setup.cmdline(':', {
-      mapping = cmp.mapping.preset.cmdline(),
-      sources = cmp.config.sources({
-        { name = 'path' }
-      }, {
-        { name = 'cmdline' }
-      }),
-      matching = { disallow_symbol_nonprefix_matching = false }
-    })
-
     -- Setup lspconfig.
     local capabilities = require('cmp_nvim_lsp').default_capabilities()
     require('lspconfig')[%YOUR_LSP_SERVER%].setup {
@@ -158,11 +137,6 @@ NOTE: `<Cmd>lua require('cmp').complete()<CR>` can be used to call these functio
 
 *cmp.setup.buffer* (config: cmp.ConfigSchema)
   Setup configuration for the current buffer.
-
-*cmp.setup.cmdline* (cmdtype: string, config: cmp.ConfigSchema)
-  Setup cmdline configuration for the specific type of command.
-  See |getcmdtype()|.
-  NOTE: nvim-cmp does not support the `=` command type.
 
 *cmp.get_registered_sources* ()
   Get all registered sources.

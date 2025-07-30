@@ -391,20 +391,13 @@ core.confirm = function(self, e, option, callback)
   feedkeys.call('', 'n', function()
     -- Restore the line at the time of request.
     local ctx = context.new()
-    if api.is_cmdline_mode() then
-      local keys = {}
-      table.insert(keys, keymap.backspace(ctx.cursor_before_line:sub(e.offset)))
-      table.insert(keys, string.sub(e.context.cursor_before_line, e.offset))
-      feedkeys.call(table.concat(keys, ''), 'in')
-    else
-      vim.cmd([[silent! undojoin]])
-      -- This logic must be used nvim_buf_set_text.
-      -- If not used, the snippet engine's placeholder will be broken.
-      vim.api.nvim_buf_set_text(0, e.context.cursor.row - 1, e.offset - 1, ctx.cursor.row - 1, ctx.cursor.col - 1, {
-        e.context.cursor_before_line:sub(e.offset),
-      })
-      vim.api.nvim_win_set_cursor(0, { e.context.cursor.row, e.context.cursor.col - 1 })
-    end
+    vim.cmd([[silent! undojoin]])
+    -- This logic must be used nvim_buf_set_text.
+    -- If not used, the snippet engine's placeholder will be broken.
+    vim.api.nvim_buf_set_text(0, e.context.cursor.row - 1, e.offset - 1, ctx.cursor.row - 1, ctx.cursor.col - 1, {
+      e.context.cursor_before_line:sub(e.offset),
+    })
+    vim.api.nvim_win_set_cursor(0, { e.context.cursor.row, e.context.cursor.col - 1 })
   end)
   feedkeys.call('', 'n', function()
     -- Apply additionalTextEdits.

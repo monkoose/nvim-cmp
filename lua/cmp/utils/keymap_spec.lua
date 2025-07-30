@@ -51,11 +51,7 @@ describe('keymap', function()
         fallback()
       end)
       feedkeys.call('', '', function()
-        if api.is_cmdline_mode() then
-          state.buffer = { api.get_current_line() }
-        else
-          state.buffer = vim.api.nvim_buf_get_lines(0, 0, -1, false)
-        end
+        state.buffer = vim.api.nvim_buf_get_lines(0, 0, -1, false)
         state.cursor = api.get_cursor()
       end)
       feedkeys.call('', 'x')
@@ -106,13 +102,6 @@ describe('keymap', function()
         assert.are.same({ '()' }, state.buffer)
         assert.are.same({ 1, 1 }, state.cursor)
       end)
-
-      -- it('cmdline default <Tab>', function()
-      --   local fallback = keymap.fallback(0, 'c', keymap.get_map('c', '<Tab>'))
-      --   local state = run_fallback(':', fallback)
-      --   assert.are.same({ '' }, state.buffer)
-      --   assert.are.same({ 1, 0 }, state.cursor)
-      -- end)
     end)
 
     describe('recursive', function()
