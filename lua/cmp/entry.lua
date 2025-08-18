@@ -492,6 +492,7 @@ entry.get_documentation = function(self)
   local item = self.completion_item
 
   local documents = {}
+  local has_detail = false
 
   -- detail
   if item.detail and item.detail ~= '' then
@@ -500,36 +501,32 @@ entry.get_documentation = function(self)
     if dot_index ~= nil then
       ft = string.sub(ft, 0, dot_index - 1)
     end
-    if ft == 'd' then
-      local s = string.gsub(item.detail, '\n', ';\n')
-      table.insert(documents, {
-        kind = types.lsp.MarkupKind.Markdown,
-        value = ('```%s\n%s;\n```'):format(ft, str.trim(s)),
-      })
-    else
-      table.insert(documents, {
-        kind = types.lsp.MarkupKind.Markdown,
-        value = ('```%s\n%s\n```'):format(ft, str.trim(item.detail)),
-      })
-    end
+    table.insert(documents, {
+      kind = types.lsp.MarkupKind.Markdown,
+      value = ('```%s\n%s\n```'):format(ft, str.trim(item.detail)),
+    })
+    has_detail = true
   end
 
-  local documentation = item.documentation
-  if type(documentation) == 'string' and documentation ~= '' then
-    local value = str.trim(documentation)
+  if type(item.documentation) == 'string' then
+    local value = str.trim(item.documentation)
     if value ~= '' then
-      table.insert(documents, '---')
+      if has_detail then
+        table.insert(documents, '---')
+      end
       table.insert(documents, {
         kind = types.lsp.MarkupKind.PlainText,
         value = value,
       })
     end
-  elseif type(documentation) == 'table' and not misc.empty(documentation.value) then
-    local value = str.trim(documentation.value)
+  elseif type(item.documentation) == 'table' then
+    local value = item.documentation.value == nil and '' or str.trim(item.documentation.value)
     if value ~= '' then
-      table.insert(documents, '---')
+      if has_detail then
+        table.insert(documents, '---')
+      end
       table.insert(documents, {
-        kind = documentation.kind,
+        kind = item.documentation.kind,
         value = value,
       })
     end
