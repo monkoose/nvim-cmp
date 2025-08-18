@@ -495,17 +495,21 @@ entry.get_documentation = function(self)
   local has_detail = false
 
   -- detail
-  if item.detail and item.detail ~= '' then
-    local ft = self.context.filetype
-    local dot_index = string.find(ft, '%.')
-    if dot_index ~= nil then
-      ft = string.sub(ft, 0, dot_index - 1)
+  if item.detail then
+    local detail = str.trim(item.detail)
+    if detail ~= '' then
+      local ft = self.context.filetype
+      local dot_index = string.find(ft, '%.')
+      if dot_index ~= nil then
+        ft = string.sub(ft, 0, dot_index - 1)
+      end
+      table.insert(documents, '```' .. ft)
+      for line in vim.gsplit(detail, '\n') do
+        table.insert(documents, line)
+      end
+      table.insert(documents, '```')
+      has_detail = true
     end
-    table.insert(documents, {
-      kind = types.lsp.MarkupKind.Markdown,
-      value = ('```%s\n%s\n```'):format(ft, str.trim(item.detail)),
-    })
-    has_detail = true
   end
 
   if type(item.documentation) == 'string' then
@@ -514,10 +518,9 @@ entry.get_documentation = function(self)
       if has_detail then
         table.insert(documents, '---')
       end
-      table.insert(documents, {
-        kind = types.lsp.MarkupKind.PlainText,
-        value = value,
-      })
+      for line in vim.gsplit(value, '\n', { trimempty = true }) do
+        table.insert(documents, line)
+      end
     end
   elseif type(item.documentation) == 'table' then
     local value = item.documentation.value == nil and '' or str.trim(item.documentation.value)
@@ -525,14 +528,13 @@ entry.get_documentation = function(self)
       if has_detail then
         table.insert(documents, '---')
       end
-      table.insert(documents, {
-        kind = item.documentation.kind,
-        value = value,
-      })
+      for line in vim.gsplit(value, '\n', { trimempty = true }) do
+        table.insert(documents, line)
+      end
     end
   end
 
-  return vim.lsp.util.convert_input_to_markdown_lines(documents)
+  return documents
 end
 
 ---Get completion item kind
