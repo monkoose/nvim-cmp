@@ -159,15 +159,18 @@ compare.locality = setmetatable({
       local locality_map = self.lines_cache:ensure({ 'line', buffer }, function()
         local locality_map = {}
         local regexp = vim.regex(config.completion.keyword_pattern)
-        while buffer ~= '' do
-          local s, e = regexp:match_str(buffer)
-          if s and e then
-            local w = string.sub(buffer, s + 1, e)
-            local d = math.abs(i - cursor_row) - (is_above and 1 or 0)
-            locality_map[w] = math.min(locality_map[w] or math.huge, d)
-            buffer = string.sub(buffer, e + 1)
-          else
-            break
+        -- the buffer length check is to avoid performance issues on very long lines, #1841
+        if #buffer < 2000 then
+          while buffer ~= '' do
+            local s, e = regexp:match_str(buffer)
+            if s and e then
+              local w = string.sub(buffer, s + 1, e)
+              local d = math.abs(i - cursor_row) - (is_above and 1 or 0)
+              locality_map[w] = math.min(locality_map[w] or math.huge, d)
+              buffer = string.sub(buffer, e + 1)
+            else
+              break
+            end
           end
         end
         return locality_map
