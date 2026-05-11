@@ -325,17 +325,18 @@ entry._get_vim_item = function(self, suggest_offset)
     word = string.sub(self.context.cursor_before_line, suggest_offset, self.offset - 1) .. word
   end
 
-  -- labelDetails.
-  local menu = nil
-  if completion_item.labelDetails then
-    menu = ''
-    if completion_item.labelDetails.detail then
-      menu = menu .. completion_item.labelDetails.detail
-    end
-    if completion_item.labelDetails.description then
-      menu = menu .. completion_item.labelDetails.description
-    end
-  end
+  -- This details are distracting, so disable for now.
+  -- -- labelDetails.
+  -- local menu = nil
+  -- if completion_item.labelDetails then
+  --   menu = ''
+  --   if completion_item.labelDetails.detail then
+  --     menu = menu .. completion_item.labelDetails.detail
+  --   end
+  --   if completion_item.labelDetails.description then
+  --     menu = menu .. completion_item.labelDetails.description
+  --   end
+  -- end
 
   -- remove duplicated string.
   if self.offset ~= self.context.cursor.col then
@@ -354,7 +355,6 @@ entry._get_vim_item = function(self, suggest_offset)
     abbr = abbr,
     kind = cmp_opts.kind_text or types.lsp.CompletionItemKind[self:get_kind()] or types.lsp.CompletionItemKind[1],
     kind_hl_group = cmp_opts.kind_hl_group,
-    menu = menu,
     dup = completion_item.dup or 1,
   }
   if config.get().formatting.format then
@@ -363,7 +363,7 @@ entry._get_vim_item = function(self, suggest_offset)
   vim_item.word = str.oneline(vim_item.word or '')
   vim_item.abbr = str.oneline(vim_item.abbr or '')
   vim_item.kind = str.oneline(vim_item.kind or '')
-  vim_item.menu = str.oneline(vim_item.menu or '')
+  vim_item.menu = ''
   vim_item.equal = 1
   vim_item.empty = 1
 
@@ -495,7 +495,7 @@ entry.get_documentation = function(self)
   local has_detail = false
 
   -- detail
-  if item.detail then
+  if item.detail and item.detail ~= vim.NIL then
     local detail = str.trim(item.detail)
     if detail ~= '' then
       local ft = self.context.filetype
