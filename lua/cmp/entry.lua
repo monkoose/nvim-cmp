@@ -254,7 +254,8 @@ end
 ---Return the item is deprecated or not.
 ---@return boolean
 entry.is_deprecated = function(self)
-  return self.completion_item.deprecated or vim.tbl_contains(self.completion_item.tags or {}, types.lsp.CompletionItemTag.Deprecated)
+  return self.completion_item.deprecated
+    or vim.tbl_contains(self.completion_item.tags or {}, types.lsp.CompletionItemTag.Deprecated)
 end
 
 ---Return view information.
@@ -393,7 +394,16 @@ end
 entry.match = function(self, input, matching_config)
   -- https://www.lua.org/pil/11.6.html
   -- do not use '..' to allocate multiple strings
-  local cache_key = string.format('%s:%d:%d:%d:%d:%d:%d', input, self.resolved_completion_item and 1 or 0, matching_config.disallow_fuzzy_matching and 1 or 0, matching_config.disallow_partial_matching and 1 or 0, matching_config.disallow_prefix_unmatching and 1 or 0, matching_config.disallow_partial_fuzzy_matching and 1 or 0, matching_config.disallow_symbol_nonprefix_matching and 1 or 0)
+  local cache_key = string.format(
+    '%s:%d:%d:%d:%d:%d:%d',
+    input,
+    self.resolved_completion_item and 1 or 0,
+    matching_config.disallow_fuzzy_matching and 1 or 0,
+    matching_config.disallow_partial_matching and 1 or 0,
+    matching_config.disallow_prefix_unmatching and 1 or 0,
+    matching_config.disallow_partial_fuzzy_matching and 1 or 0,
+    matching_config.disallow_symbol_nonprefix_matching and 1 or 0
+  )
   local matched = self.match_cache:get(cache_key)
   if matched then
     if self.match_view_args_ret and self.match_view_args_ret.input ~= input then
@@ -619,7 +629,8 @@ end
 ---Convert the oneline range encoding.
 entry.convert_range_encoding = function(self, range)
   local from_encoding = self.source.position_encoding
-  local cache_key = string.format('entry.convert_range_encoding:%d:%d:%s', range.start.character, range['end'].character, from_encoding)
+  local cache_key =
+    string.format('entry.convert_range_encoding:%d:%d:%s', range.start.character, range['end'].character, from_encoding)
   local res = self.context.cache:get(cache_key)
   if res then
     return res
