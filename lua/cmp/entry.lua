@@ -363,7 +363,6 @@ entry._get_vim_item = function(self, suggest_offset)
   vim_item.word = str.oneline(vim_item.word or '')
   vim_item.abbr = str.oneline(vim_item.abbr or '')
   vim_item.kind = str.oneline(vim_item.kind or '') .. ' '
-  vim.print(vim_item.kind)
   vim_item.menu = ''
   vim_item.equal = 1
   vim_item.empty = 1
